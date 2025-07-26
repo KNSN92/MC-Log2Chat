@@ -1,0 +1,89 @@
+import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
+import { useState } from "react";
+import { Button } from "./ui/button";
+import { CheckIcon, ChevronsUpDownIcon } from "lucide-react";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "./ui/command";
+import { cn } from "@/lib/utils";
+
+export default function PlayerSelector({
+  players,
+  selectedPlayers,
+  setSelectedPlayers,
+  disabled,
+}: {
+  players: string[];
+  selectedPlayers: string[];
+  setSelectedPlayers: (value: string[]) => void;
+  disabled: boolean;
+}) {
+  const [open, setOpen] = useState(false);
+
+  const sorted_players = [
+    ...selectedPlayers.sort(),
+    ...players.filter((player) => !selectedPlayers.includes(player)),
+  ];
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button
+          variant="outline"
+          role="combobox"
+          aria-expanded={open}
+          disabled={disabled}
+          className="w-[200px] justify-between"
+        >
+          {selectedPlayers.length > 0
+            ? selectedPlayers[0] + (selectedPlayers.length > 1 ? ", ..." : "")
+            : "Select player..."}
+          <ChevronsUpDownIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-[200px] p-0">
+        <Command>
+          <CommandInput placeholder="Search player..." />
+          <CommandList>
+            <CommandEmpty>No player found.</CommandEmpty>
+            <CommandGroup>
+              {sorted_players.map((player, i) => (
+                <CommandItem
+                  key={i}
+                  value={player}
+                  onSelect={(currentValue) => {
+                    if (selectedPlayers.includes(currentValue)) {
+                      setSelectedPlayers(
+                        selectedPlayers.filter(
+                          (selectedPlayer) => selectedPlayer !== currentValue
+                        )
+                      );
+                    } else {
+                      setSelectedPlayers([...selectedPlayers, currentValue]);
+                    }
+                    setOpen(false);
+                  }}
+                >
+                  <CheckIcon
+                    className={cn(
+                      "mr-2 h-4 w-4",
+                      selectedPlayers.includes(player)
+                        ? "opacity-100"
+                        : "opacity-0"
+                    )}
+                  />
+                  {player}
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          </CommandList>
+        </Command>
+      </PopoverContent>
+    </Popover>
+  );
+}
