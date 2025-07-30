@@ -1,4 +1,4 @@
-import type { Chat } from "./chat";
+import { get_chat_player, type Chat } from "./chat";
 
 export interface ChatFilter {
   players: string[] | null;
@@ -10,7 +10,10 @@ export function filterChatList(chatList: Chat[], filter: ChatFilter): Chat[] {
   if(filter.forced_mismatch) return [];
   if(filter.players == null && filter.message == null) return chatList;
   if(filter.players && filter.players.length > 0) {
-    chatList = chatList.filter((chat) => filter.players!.includes(chat.player));
+    chatList = chatList.filter((chat) => {
+      const player = get_chat_player(chat);
+      return player && filter.players!.includes(player);
+    });
   }
   if(filter.message != null) {
     const message_filter = filter.message;

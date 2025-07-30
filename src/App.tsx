@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useTransition } from "react";
 import { useDropzone } from "react-dropzone";
 import "./App.css";
 import ChatFilter from "./components/chat-filter";
@@ -8,7 +8,7 @@ import {
   isFiltered,
   type ChatFilter as ChatFilterData,
 } from "./lib/chat-filter";
-import { type Chat } from "./lib/chat";
+import { get_chat_player, type Chat } from "./lib/chat";
 import MCLog2ChatMenubar from "./components/menubar";
 import { load_from_files as load_chat_from_files } from "./lib/chat-io";
 
@@ -24,31 +24,39 @@ function App() {
     () =>
       [
         ...new Set(
-          chatList.map((chat) => chat.player).filter((player) => player != null)
+          chatList.map((chat) => get_chat_player(chat)).filter((player) => player != null)
         ),
       ].sort(),
     [chatList]
   );
 
+  
+  const [isChatLoading, startChatLoading] = useTransition();
   const { getRootProps } = useDropzone({
     onDrop(acceptedFiles) {
-      load_chat_from_files(acceptedFiles).then(setChatList);
+      startChatLoading(async () => {
+        const loadedChatList = await load_chat_from_files(acceptedFiles);
+        setChatList(loadedChatList);
+      })
     },
   });
-
+  
   const [filteredChatList, setFilteredChatList] = useState<Chat[]>([]);
   useEffect(() => {
-    setFilteredChatList(
-      isFiltered(chatFilter) ? filterChatList(chatList, chatFilter) : chatList
-    );
+    startChatLoading(() => {
+      setFilteredChatList(
+        isFiltered(chatFilter) ? filterChatList(chatList, chatFilter) : chatList
+      );
+    });
   }, [chatList, chatFilter]);
 
   return (
-    <div {...getRootProps()} className="h-screen pt-4 px-8 flex flex-col gap-4">
+    <div {...getRootProps()} className="h-screen pt-4 px-8 flex flex-col gap-4 overflow-hidden">
       <div className="text-5xl font-bold text-foreground">MC Log2Chat</div>
       <MCLog2ChatMenubar
         chatList={filteredChatList}
         setChatList={setChatList}
+        startChatLoading={startChatLoading}
       />
       <ChatFilter
         filter={chatFilter}
@@ -56,7 +64,7 @@ function App() {
         disabled={chatList.length === 0}
         players={players}
       />
-      <ChatViewer chatList={filteredChatList} />
+      <ChatViewer chatList={filteredChatList} filter={chatFilter} setFilter={setChatFilter} isPending={isChatLoading} />
     </div>
   );
 }

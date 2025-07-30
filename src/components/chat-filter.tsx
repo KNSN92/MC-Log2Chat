@@ -17,6 +17,7 @@ export default function ChatFilter({
   disabled: boolean;
   players: string[];
 }) {
+
   const [searchText, setSearchText] = useState<string | null>(null);
   const [useRegex, setUseRegex] = useState(false);
 

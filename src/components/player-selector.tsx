@@ -26,8 +26,8 @@ export default function PlayerSelector({
   const [open, setOpen] = useState(false);
 
   const sorted_players = [
-    ...selectedPlayers.sort(),
-    ...players.filter((player) => !selectedPlayers.includes(player)),
+    ...selectedPlayers,
+    ...players.filter((player) => !selectedPlayers.includes(player)).sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase())),
   ];
 
   return (
@@ -64,7 +64,7 @@ export default function PlayerSelector({
                         )
                       );
                     } else {
-                      setSelectedPlayers([...selectedPlayers, currentValue]);
+                      setSelectedPlayers([...selectedPlayers, currentValue].sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase())));
                     }
                     setOpen(false);
                   }}

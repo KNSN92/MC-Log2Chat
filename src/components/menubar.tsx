@@ -17,9 +17,11 @@ import { cn } from "@/lib/utils";
 export default function MCLog2ChatMenubar({
   chatList,
   setChatList,
+  startChatLoading,
 }: {
   chatList: Chat[];
   setChatList: (chatList: Chat[]) => void;
+  startChatLoading: (action: () => void) => void;
 }) {
   const body_classes = document.body.classList;
   return (
@@ -27,10 +29,10 @@ export default function MCLog2ChatMenubar({
       <MenubarMenu>
         <MenubarTrigger>File</MenubarTrigger>
         <MenubarContent>
-          <MenubarItem onSelect={() => load_from_file_chooser(setChatList)}>
+          <MenubarItem onSelect={() => load_from_file_chooser(setChatList, startChatLoading)}>
             Load from file
           </MenubarItem>
-          <MenubarItem onSelect={() => load_from_clipboard(setChatList)}>
+          <MenubarItem onSelect={() => load_from_clipboard(setChatList, startChatLoading)}>
             Load from clipboard
           </MenubarItem>
           <MenubarSeparator />
@@ -116,7 +118,7 @@ export default function MCLog2ChatMenubar({
   );
 }
 
-function load_from_file_chooser(setChatList: (chatList: Chat[]) => void) {
+function load_from_file_chooser(setChatList: (chatList: Chat[]) => void, startChatLoading: (action: () => void) => void) {
   new Promise<FileList | null>((resolve) => {
     const file_chooser = document.createElement("input");
     file_chooser.type = "file";
@@ -127,19 +129,23 @@ function load_from_file_chooser(setChatList: (chatList: Chat[]) => void) {
     file_chooser.click();
   }).then((fileList) => {
     if (!fileList) return;
-    load_from_files([...fileList]).then((chatList) => {
+    startChatLoading(() => {
+      load_from_files([...fileList]).then((chatList) => {
       setChatList(chatList);
     });
+    })
   });
 }
 
-function load_from_clipboard(setChatList: (chatList: Chat[]) => void) {
-  navigator.clipboard.readText().then((text) => {
-    const chatList = text
-      .split("\n")
-      .map((line) => get_chat(line))
-      .filter((chat) => chat !== null);
-    setChatList(chatList);
+function load_from_clipboard(setChatList: (chatList: Chat[]) => void, startChatLoading: (action: () => void) => void) {
+  startChatLoading(() => {
+    navigator.clipboard.readText().then((text) => {
+      const chatList = text
+        .split("\n")
+        .map((line) => get_chat(line))
+        .filter((chat) => chat !== null);
+      setChatList(chatList);
+    })
   });
 }
 
