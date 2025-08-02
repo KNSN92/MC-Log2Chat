@@ -24,23 +24,24 @@ function App() {
     () =>
       [
         ...new Set(
-          chatList.map((chat) => get_chat_player(chat)).filter((player) => player != null)
+          chatList
+            .map((chat) => get_chat_player(chat))
+            .filter((player) => player != null)
         ),
       ].sort(),
     [chatList]
   );
 
-  
   const [isChatLoading, startChatLoading] = useTransition();
   const { getRootProps } = useDropzone({
     onDrop(acceptedFiles) {
       startChatLoading(async () => {
         const loadedChatList = await load_chat_from_files(acceptedFiles);
         setChatList(loadedChatList);
-      })
+      });
     },
   });
-  
+
   const [filteredChatList, setFilteredChatList] = useState<Chat[]>([]);
   useEffect(() => {
     startChatLoading(() => {
@@ -51,7 +52,10 @@ function App() {
   }, [chatList, chatFilter]);
 
   return (
-    <div {...getRootProps()} className="h-screen pt-4 px-8 flex flex-col gap-4 overflow-hidden">
+    <div
+      {...getRootProps()}
+      className="h-screen pt-4 px-8 flex flex-col gap-4 overflow-hidden"
+    >
       <div className="text-5xl font-bold text-foreground">MC Log2Chat</div>
       <MCLog2ChatMenubar
         chatList={filteredChatList}
@@ -64,7 +68,12 @@ function App() {
         disabled={chatList.length === 0}
         players={players}
       />
-      <ChatViewer chatList={filteredChatList} filter={chatFilter} setFilter={setChatFilter} isPending={isChatLoading} />
+      <ChatViewer
+        chatList={filteredChatList}
+        filter={chatFilter}
+        setFilter={setChatFilter}
+        isLoading={isChatLoading}
+      />
     </div>
   );
 }

@@ -6,6 +6,7 @@ type LangType = {
   leave: RegExp[],
   tell_from: RegExp[]
   tell_to: RegExp[],
+  advancement: RegExp[],
 }
 
 const lang: LangType = {
@@ -14,6 +15,7 @@ const lang: LangType = {
   leave: [],
   tell_from: [],
   tell_to: [],
+  advancement: [],
 };
 for(const entry of Object.entries(langJson)) {
   const key = entry[0] as keyof LangType;
@@ -45,6 +47,10 @@ export type Chat = {
     player: string;
     by?: string;
     item?: string;
+  } | {
+    type: "advancement";
+    advancement: string;
+    player: string;
   }
 );
 
@@ -63,9 +69,9 @@ export function chatTimeToString(chatTime: ChatTime) {
   const month = chatTime.month?.toString().padStart(2, "0");
   const day = chatTime.day?.toString().padStart(2, "0");
 
-  const hour = chatTime.hour?.toString().padStart(2, "0");
-  const minute = chatTime.minute?.toString().padStart(2, "0");
-  const second = chatTime.second?.toString().padStart(2, "0");
+  const hour = chatTime.hour.toString().padStart(2, "0");
+  const minute = chatTime.minute.toString().padStart(2, "0");
+  const second = chatTime.second.toString().padStart(2, "0");
 
   if(year && month && day) {
     return `${year}/${month}/${day} ${hour}:${minute}:${second}`;
@@ -124,6 +130,17 @@ export function get_chat(line: string): Chat | null {
         player: leave_match.groups!.Player!,
       }
     }
+    for(const advancement_msg_matcher of lang.advancement) {
+      const advancement_match = message.match(advancement_msg_matcher);
+      if(!advancement_match) continue;
+      return {
+        type: "advancement",
+        time,
+        message: message,
+        player: advancement_match.groups!.player,
+        advancement: advancement_match.groups!.advancement,
+      }
+    }
     return {
       type: "system",
       time,
@@ -174,6 +191,8 @@ export function get_chat_player(chat: Chat): string | null {
       return chat.player;
     case "tell":
       return chat.sender;
+    case "advancement":
+      return chat.player;
     case "unknown":
       return null;
   }
@@ -193,6 +212,8 @@ export function get_display_chat_player(chat: Chat): string {
       return chat.player;
     case "tell":
       return chat.sender;
+    case "advancement":
+      return chat.player;
     case "unknown":
       return "[Unknown]";
   }

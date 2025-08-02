@@ -1,4 +1,9 @@
-import { chatTimeToString, get_chat_player, get_display_chat_player, type Chat } from "@/lib/chat";
+import {
+  chatTimeToString,
+  get_chat_player,
+  get_display_chat_player,
+  type Chat,
+} from "@/lib/chat";
 import {
   Table,
   TableBody,
@@ -16,7 +21,17 @@ import { Button } from "./ui/button";
 import type { ChatFilter } from "@/lib/chat-filter";
 import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
 
-export default function ChatViewer({ chatList, filter, setFilter, isPending }: { chatList: Chat[], filter: ChatFilter, setFilter: (filter: ChatFilter) => void, isPending: boolean }) {
+export default function ChatViewer({
+  chatList,
+  filter,
+  setFilter,
+  isLoading: isPending,
+}: {
+  chatList: Chat[];
+  filter: ChatFilter;
+  setFilter: (filter: ChatFilter) => void;
+  isLoading: boolean;
+}) {
   const [hoverIndex, setHoverIndex] = useState<number | null>(null);
   const debouncedSetHoverIndex = useDebouncedCallback(setHoverIndex, 500);
   const existsHasDateChat =
@@ -31,36 +46,37 @@ export default function ChatViewer({ chatList, filter, setFilter, isPending }: {
     const isHovered = i === hoverIndex;
 
     let playerElement;
-    if(get_chat_player(chat) == null) {
-      playerElement = player
-    }else {
+    if (get_chat_player(chat) == null) {
+      playerElement = player;
+    } else {
       playerElement = (
-        <Button variant="link" className="px-0 h-fit py-0 cursor-pointer" onClick={() => {
-          const player = get_chat_player(chat);
-          if(player == null) return;
-          const selectedPlayers = filter.players ?? [];
-          if(selectedPlayers.includes(player)) return;
-          setFilter({
-            ...filter,
-            players: [...selectedPlayers, player].sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()))
-          });
-        }}>
+        <Button
+          variant="link"
+          className="px-0 h-fit py-0 cursor-pointer"
+          onClick={() => {
+            const player = get_chat_player(chat);
+            if (player == null) return;
+            const selectedPlayers = filter.players ?? [];
+            if (selectedPlayers.includes(player)) return;
+            setFilter({
+              ...filter,
+              players: [...selectedPlayers, player].sort((a, b) =>
+                a.toLowerCase().localeCompare(b.toLowerCase())
+              ),
+            });
+          }}
+        >
           {player}
         </Button>
-      )
-      if(isHovered) {
+      );
+      if (isHovered) {
         playerElement = (
           <Tooltip>
-            <TooltipTrigger>
-              {playerElement}
-            </TooltipTrigger>
-            <TooltipContent>
-              Add to filter
-            </TooltipContent>
+            <TooltipTrigger>{playerElement}</TooltipTrigger>
+            <TooltipContent>Add to filter</TooltipContent>
           </Tooltip>
-        )
+        );
       }
-
     }
 
     const chatRow = (
@@ -71,7 +87,12 @@ export default function ChatViewer({ chatList, filter, setFilter, isPending }: {
         <TableCell className="text-nowrap overflow-hidden overflow-ellipsis">
           {chatTimeToString(chat.time)}
         </TableCell>
-        <TableCell className={cn("text-nowrap overflow-hidden overflow-ellipsis", chat_color_class(chat))}>
+        <TableCell
+          className={cn(
+            "text-nowrap overflow-hidden overflow-ellipsis",
+            chat_color_class(chat)
+          )}
+        >
           {chat.message}
         </TableCell>
       </TableRow>
@@ -83,11 +104,15 @@ export default function ChatViewer({ chatList, filter, setFilter, isPending }: {
           <HoverCardContent className="w-[60vw]">
             <div className="space-y-1">
               <h4>
-                  {player}
-                  <span className="inline-block w-4" />
-                [{chatTimeToString(chat.time)}]
+                {player}
+                <span className="inline-block w-4" />[
+                {chatTimeToString(chat.time)}]
               </h4>
-              <p className={cn("text-wrap break-words", chat_color_class(chat))}>{chat.message}</p>
+              <p
+                className={cn("text-wrap break-words", chat_color_class(chat))}
+              >
+                {chat.message}
+              </p>
             </div>
           </HoverCardContent>
         </HoverCard>
@@ -108,11 +133,15 @@ export default function ChatViewer({ chatList, filter, setFilter, isPending }: {
         </TableRow>
       </TableHeader>
       <TableBody className="w-full h-full overflow-y-auto">
-        {isPending ? <>
-          <ChatViewerSkeleton />
-          <ChatViewerSkeleton />
-          <ChatViewerSkeleton />
-        </> : chatElementList}
+        {isPending ? (
+          <>
+            <ChatViewerSkeleton />
+            <ChatViewerSkeleton />
+            <ChatViewerSkeleton />
+          </>
+        ) : (
+          chatElementList
+        )}
       </TableBody>
     </Table>
   );
@@ -120,13 +149,15 @@ export default function ChatViewer({ chatList, filter, setFilter, isPending }: {
 
 function chat_color_class(chat: Chat): string | null {
   if (chat.type === "death") {
-    return "text-[#ff5555]";
+    return "text-[#f55]";
   } else if (chat.type === "join") {
-    return "text-[#ffff55]";
+    return "text-[#ff5]";
   } else if (chat.type === "leave") {
-    return "text-[#ffff55]";
+    return "text-[#ff5]";
   } else if (chat.type === "tell") {
-    return "text-[#aaaaaa]";
+    return "text-[#aaa]";
+  } else if (chat.type === "advancement") {
+    return "text-[#f5f]";
   } else {
     return null;
   }

@@ -8,19 +8,19 @@ FORMAT_MATCHER = re.compile(r"% ?(s|\d+ ?\$ ?s)")
 
 LANG_FOLDER = "downloaded_lang"
 
+PLAYER_REGEX = "[a-zA-Z0-9_]+?"
 targets: dict[str, tuple[str, list[tuple[str, str]], list[tuple[str, str]]]] = {
-    "death.": ("death", [], [("Player", "[a-zA-Z0-9_]+?"), ("By", ".+?"), ("Item", ".+?")]),
-    "multiplayer.player.joined": ("join", [("Player", "[a-zA-Z0-9_]+?"), ("OldName", "[a-zA-Z0-9_]+?")], []),
-    "multiplayer.player.left": ("leave", [("Player", "[a-zA-Z0-9_]+?")], []),
-    "commands.message.display.incoming": ("tell_from", [("Sender", "[a-zA-Z0-9_]+?"), ("Message", ".*")], []),
-    "commands.message.display.outgoing": ("tell_to", [("Receiver", "[a-zA-Z0-9_]+?"), ("Message", ".*")], []),
+    "death.": ("death", [], [("Player", PLAYER_REGEX), ("By", ".+?"), ("Item", ".+?")]),
+    "multiplayer.player.joined": ("join", [("Player", PLAYER_REGEX), ("OldName", PLAYER_REGEX)], []),
+    "multiplayer.player.left": ("leave", [("Player", PLAYER_REGEX)], []),
+    "commands.message.display.incoming": ("tell_from", [("Sender", PLAYER_REGEX), ("Message", ".*")], []),
+    "commands.message.display.outgoing": ("tell_to", [("Receiver", PLAYER_REGEX), ("Message", ".*")], []),
+    "chat.type.advancement.": ("advancement", [("player", PLAYER_REGEX), ("advancement", r"\[.+?\]")], [])
 }
 
 excluded_targets = [
     "death.attack.badRespawnPoint.link"
 ]
-
-print(targets.items())
 
 ESCAPE_TRANSLATE = str.maketrans({
     ".": "\\.",
