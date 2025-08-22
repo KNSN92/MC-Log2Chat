@@ -10,33 +10,62 @@ import {
   MenubarSubTrigger,
   MenubarTrigger,
 } from "./ui/menubar";
-import { load_from_files } from "@/lib/chat-io";
+import ChatLoadWorker from "@/lib/chat-loader.worker?worker";
+import { get, set } from "@/lib/storage";
 import { CheckIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useEffect, useState, type ReactNode } from "react";
+import { toast } from "sonner";
+import type { ChatLoaderInput, ChatLoaderOutput, ChatLoadingProgress } from "@/lib/chat-loader.worker";
+
+type Font = "default" | "unifont" | "mcfont";
+type Theme = "light" | "dark";
 
 export default function MCLog2ChatMenubar({
   chatList,
+  isChatLoading,
   setChatList,
   startChatLoading,
+  setChatLoadingProgress,
 }: {
   chatList: Chat[];
+  isChatLoading: boolean;
   setChatList: (chatList: Chat[]) => void;
   startChatLoading: (action: () => void) => void;
+  setChatLoadingProgress: (progress: ChatLoadingProgress | null) => void;
 }) {
   const body_classes = document.body.classList;
+
+  const [font, setFont] = useState<Font>(get("font", "mcfont") as Font);
+  useEffect(() => {
+    set("font", font);
+    body_classes.add(font);
+    return () => body_classes.remove(font);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [font]);
+
+  const [theme, setTheme] = useState<Theme>(get("theme", "dark") as Theme);
+  useEffect(() => {
+    set("theme", theme);
+    body_classes.add(theme);
+    return () => body_classes.remove(theme);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [theme])
+
   return (
     <Menubar className="w-fit">
       <MenubarMenu>
         <MenubarTrigger>File</MenubarTrigger>
         <MenubarContent>
-          <MenubarItem onSelect={() => load_from_file_chooser(setChatList, startChatLoading)}>
+          <MenubarItem disabled={isChatLoading} onSelect={() => load_from_file_chooser(setChatList, startChatLoading, setChatLoadingProgress)}>
             Load from file
           </MenubarItem>
-          <MenubarItem onSelect={() => load_from_clipboard(setChatList, startChatLoading)}>
+          <MenubarItem disabled={isChatLoading} onSelect={() => load_from_clipboard(setChatList, startChatLoading)}>
             Load from clipboard
           </MenubarItem>
           <MenubarSeparator />
           <MenubarItem
+            disabled={isChatLoading}
             onSelect={() => {
               download_chat_as_txt(chatList);
             }}
@@ -52,16 +81,12 @@ export default function MCLog2ChatMenubar({
           <MenubarSub>
             <MenubarSubTrigger>Theme</MenubarSubTrigger>
             <MenubarSubContent>
-              <MenubarItem onSelect={() => body_classes.remove("dark")}>
-                <CheckIcon
-                  className={cn(body_classes.contains("dark") && "opacity-0")}
-                />
-                White
+              <MenubarItem onSelect={() => setTheme("light")}>
+                <CheckIcon className={cn(theme !== "light" && "opacity-0")}/>
+                Light
               </MenubarItem>
-              <MenubarItem onSelect={() => body_classes.add("dark")}>
-                <CheckIcon
-                  className={cn(!body_classes.contains("dark") && "opacity-0")}
-                />
+              <MenubarItem onSelect={() => setTheme("dark")}>
+                <CheckIcon className={cn(theme !== "dark" && "opacity-0")}/>
                 Dark
               </MenubarItem>
             </MenubarSubContent>
@@ -70,43 +95,24 @@ export default function MCLog2ChatMenubar({
             <MenubarSubTrigger>Font</MenubarSubTrigger>
             <MenubarSubContent>
               <MenubarItem
-                onSelect={() => {
-                  body_classes.remove("uni_font");
-                  body_classes.add("mc_font");
-                }}
+                onSelect={() => setFont("mcfont")}
               >
                 <CheckIcon
-                  className={cn(
-                    !body_classes.contains("mc_font") && "opacity-0"
-                  )}
+                  className={cn(font !== "mcfont" && "opacity-0")}
                 />
                 Minecraft
               </MenubarItem>
               <MenubarItem
-                onSelect={() => {
-                  body_classes.remove("mc_font");
-                  body_classes.add("uni_font");
-                }}
+                onSelect={() => setFont("unifont")}
               >
                 <CheckIcon
-                  className={cn(
-                    !body_classes.contains("uni_font") && "opacity-0"
-                  )}
+                  className={cn(font !== "unifont" && "opacity-0")}
                 />
                 Unicode
               </MenubarItem>
-              <MenubarItem
-                onSelect={() => {
-                  body_classes.remove("uni_font");
-                  body_classes.remove("mc_font");
-                }}
-              >
+              <MenubarItem onSelect={() => setFont("default")}>
                 <CheckIcon
-                  className={cn(
-                    (body_classes.contains("uni_font") ||
-                      body_classes.contains("mc_font")) &&
-                      "opacity-0"
-                  )}
+                  className={cn(font !== "default" && "opacity-0")}
                 />
                 Default
               </MenubarItem>
@@ -118,22 +124,46 @@ export default function MCLog2ChatMenubar({
   );
 }
 
-function load_from_file_chooser(setChatList: (chatList: Chat[]) => void, startChatLoading: (action: () => void) => void) {
+function load_from_file_chooser(setChatList: (chatList: Chat[]) => void, startChatLoading: (action: () => void) => void, setChatLoadingProgress: (progress: ChatLoadingProgress | null) => void) {
   new Promise<FileList | null>((resolve) => {
     const file_chooser = document.createElement("input");
     file_chooser.type = "file";
-    file_chooser.accept = "text/plain,.log";
+    file_chooser.accept = "text/plain,.log,.gz";
+    file_chooser.multiple = true;
     file_chooser.onchange = () => {
       resolve(file_chooser.files);
     };
     file_chooser.click();
   }).then((fileList) => {
     if (!fileList) return;
-    startChatLoading(() => {
-      load_from_files([...fileList]).then((chatList) => {
-      setChatList(chatList);
+    setChatLoadingProgress(null);
+    startChatLoading(async () => {
+      await new Promise<void>((resolve) => {
+        const loader = new ChatLoadWorker();
+        loader.postMessage({
+          type: "file",
+          files: [...fileList],
+        } satisfies ChatLoaderInput);
+        loader.addEventListener("message", (e) => {
+          const output = e.data as ChatLoaderOutput;
+          switch(output.type) {
+            case "progress":
+              setChatLoadingProgress(output.progress);
+              break;
+            case "failed_files":
+              toast("These files did not contain any chats or could not be read!", {
+                description: output.failedFiles.reduce<ReactNode[]>((acc, value) => [...acc, <br/>, value], []).slice(1),
+                duration: 10000,
+              });
+              break;
+            case "result":
+              setChatList(output.chatList);
+              resolve();
+              break;
+          }
+        });
+      })
     });
-    })
   });
 }
 

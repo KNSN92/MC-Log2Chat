@@ -142,7 +142,8 @@ export function get_chat(line: string): Chat | null {
       }
     }
     return {
-      type: "system",
+      type: "player",
+      player: "[System]",
       time,
       message: message,
     }
@@ -170,7 +171,8 @@ export function get_chat(line: string): Chat | null {
       }
     }
     return {
-      type: "unknown",
+      type: "player",
+      player: "[Unknown]",
       time,
       message: message,
     }

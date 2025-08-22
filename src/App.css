@@ -8,10 +8,10 @@
     src: url("/unifont.otf");
 }
 
-.mc_font {
+.mcfont {
     font-family: "Minecraft-Seven-V2", "Unifont";
 }
 
-.uni_font {
+.unifont {
     font-family: "Unifont";
 }

@@ -47,12 +47,12 @@ export default function ChatViewer({
 
     let playerElement;
     if (get_chat_player(chat) == null) {
-      playerElement = player;
+      playerElement = <span className="text-nowrap overflow-hidden overflow-ellipsis">{player}</span>;
     } else {
       playerElement = (
         <Button
           variant="link"
-          className="px-0 h-fit py-0 cursor-pointer"
+          className="px-0 w-full h-fit py-0 justify-start cursor-pointer text-nowrap overflow-ellipsis"
           onClick={() => {
             const player = get_chat_player(chat);
             if (player == null) return;
@@ -72,7 +72,7 @@ export default function ChatViewer({
       if (isHovered) {
         playerElement = (
           <Tooltip>
-            <TooltipTrigger>{playerElement}</TooltipTrigger>
+            <TooltipTrigger asChild>{playerElement}</TooltipTrigger>
             <TooltipContent>Add to filter</TooltipContent>
           </Tooltip>
         );
@@ -81,7 +81,7 @@ export default function ChatViewer({
 
     const chatRow = (
       <TableRow key={i} onMouseEnter={() => debouncedSetHoverIndex(i)}>
-        <TableCell className="text-nowrap overflow-hidden overflow-ellipsis">
+        <TableCell className={cn("text-nowrap overflow-hidden overflow-ellipsis")}>
           {playerElement}
         </TableCell>
         <TableCell className="text-nowrap overflow-hidden overflow-ellipsis">
@@ -90,7 +90,8 @@ export default function ChatViewer({
         <TableCell
           className={cn(
             "text-nowrap overflow-hidden overflow-ellipsis",
-            chat_color_class(chat)
+            chat_color_class(chat.type),
+            // chat_shadow_color_class(chat.type)
           )}
         >
           {chat.message}
@@ -109,7 +110,7 @@ export default function ChatViewer({
                 {chatTimeToString(chat.time)}]
               </h4>
               <p
-                className={cn("text-wrap break-words", chat_color_class(chat))}
+                className={cn("text-wrap break-words", chat_color_class(chat.type))}
               >
                 {chat.message}
               </p>
@@ -132,7 +133,7 @@ export default function ChatViewer({
           <TableHead className="w-auto">Message</TableHead>
         </TableRow>
       </TableHeader>
-      <TableBody className="w-full h-full overflow-y-auto">
+      <TableBody className={cn("w-full h-full", !isPending && chatElementList.length === 0 && "hidden")}>
         {isPending ? (
           <>
             <ChatViewerSkeleton />
@@ -147,18 +148,36 @@ export default function ChatViewer({
   );
 }
 
-function chat_color_class(chat: Chat): string | null {
-  if (chat.type === "death") {
-    return "text-[#f55]";
-  } else if (chat.type === "join") {
-    return "text-[#ff5]";
-  } else if (chat.type === "leave") {
-    return "text-[#ff5]";
-  } else if (chat.type === "tell") {
-    return "text-[#aaa]";
-  } else if (chat.type === "advancement") {
-    return "text-[#f5f]";
-  } else {
-    return null;
+function chat_color_class(chat_type: Chat["type"]): string | null {
+  switch(chat_type) {
+    case "death":
+      return "text-[#ff5555]";
+    case "join":
+      return "text-[#ffff55]";
+    case "leave":
+      return "text-[#ffff55]";
+    case "tell":
+      return "text-[#aaaaaa]";
+    case "advancement":
+      return "text-[#ff55ff]";
+    default:
+      return null;
   }
 }
+
+// function chat_shadow_color_class(chat_type: Chat["type"]): string | null {
+//   switch(chat_type) {
+//     case "death":
+//       return "text-shadow-[#3f1515]";
+//     case "join":
+//       return "text-shadow-[#3f3f15]";
+//     case "leave":
+//       return "text-shadow-[#3f3f15]";
+//     case "tell":
+//       return "text-shadow-[#2a2a2a]";
+//     case "advancement":
+//       return "text-shadow-[#3f153f]";
+//     default:
+//       return null;
+//   }
+// }
