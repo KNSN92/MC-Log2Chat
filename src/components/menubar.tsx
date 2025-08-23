@@ -136,7 +136,6 @@ function load_from_file_chooser(setChatList: (chatList: Chat[]) => void, startCh
     file_chooser.click();
   }).then((fileList) => {
     if (!fileList) return;
-    setChatLoadingProgress(null);
     startChatLoading(async () => {
       await new Promise<void>((resolve) => {
         const loader = new ChatLoadWorker();
@@ -158,6 +157,7 @@ function load_from_file_chooser(setChatList: (chatList: Chat[]) => void, startCh
               break;
             case "result":
               setChatList(output.chatList);
+              setChatLoadingProgress(null);
               resolve();
               break;
           }

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState, useTransition, type ReactNode } from "react";
 import "./App.css";
+import Logo from "/logo.svg";
 import ChatFilter from "./components/chat-filter";
 import ChatViewer from "./components/chat-viewer";
 import {
@@ -7,7 +8,7 @@ import {
   isFiltered,
   type ChatFilter as ChatFilterData,
 } from "./lib/chat-filter";
-import { get_chat_player, type Chat } from "./lib/chat";
+import { get_display_chat_player, type Chat } from "./lib/chat";
 import MCLog2ChatMenubar from "./components/menubar";
 import ChatLoadWorker from "./lib/chat-loader.worker?worker";
 import { Dropzone, DropzoneContent, DropzoneEmptyState } from "./components/ui/shadcn-io/dropzone";
@@ -30,8 +31,7 @@ function App() {
       [
         ...new Set(
           chatList
-            .map((chat) => get_chat_player(chat))
-            .filter((player) => player != null)
+            .map((chat) => get_display_chat_player(chat))
         ),
       ].sort(),
     [chatList]
@@ -55,7 +55,10 @@ function App() {
 
   return (
     <div className="h-screen pt-4 px-8 flex flex-col gap-4 overflow-hidden">
-      <div className="text-5xl font-bold text-foreground">MC Log2Chat</div>
+      <div className="flex items-center gap-4">
+        <img src={Logo} className="w-16 aspect-square"/>
+        <div className="text-5xl font-bold text-foreground mcfont">MC Log2Chat</div>
+      </div>
       <MCLog2ChatMenubar
         chatList={filteredChatList}
         isChatLoading={isChatLoading}
@@ -86,7 +89,6 @@ function App() {
               // src={files}
               onDrop={(files) => {
                 // setFiles(files);
-                setChatLoadingProgress(null);
                 startChatLoading(async () => {
                   await new Promise<void>((resolve) => {
                     const loader = new ChatLoadWorker();
@@ -108,6 +110,7 @@ function App() {
                           break;
                         case "result":
                           setChatList(output.chatList);
+                          setChatLoadingProgress(null);
                           resolve()
                           break;
                       }
