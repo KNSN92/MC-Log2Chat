@@ -65,7 +65,7 @@ export default function MCLog2ChatMenubar({
           </MenubarItem>
           <MenubarSeparator />
           <MenubarItem
-            disabled={isChatLoading}
+            disabled={isChatLoading || chatList.length === 0}
             onSelect={() => {
               download_chat_as_txt(chatList);
             }}
