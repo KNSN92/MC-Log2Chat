@@ -16,7 +16,7 @@ import { Toaster } from "./components/ui/sonner";
 import { toast } from "sonner";
 import { cn } from "./lib/utils";
 import type { ChatLoaderInput, ChatLoaderOutput, ChatLoadingProgress } from "./lib/chat-loader.worker";
-import LoadingCard from "./components/loading-card";
+import LoadingCard from "./components/loading-dialog";
 
 function App() {
   const [chatFilter, setChatFilter] = useState<ChatFilterData>({
@@ -124,8 +124,8 @@ function App() {
             </Dropzone>
           </div>
         )}
-        {isChatLoading && chatLoadingProgress != null && <LoadingCard progress={chatLoadingProgress} />}
       </div>
+      <LoadingCard open={isChatLoading && chatLoadingProgress != null} progress={chatLoadingProgress ?? {task: null, file: null, progress: 1}} />
       <Toaster />
     </div>
   );

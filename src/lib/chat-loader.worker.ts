@@ -9,7 +9,7 @@ export type ChatLoaderInput = {
 }
 
 export type ChatLoadingProgress = {
-	task: "load_file" | "get_chat",
+	task: "load_file" | "get_chat" | null,
 	file: string | null,
 	progress: number,
 }
