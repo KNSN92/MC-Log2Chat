@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="_レイヤー_1" data-name="レイヤー_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 196.39 226.77">
+  <defs>
+    <style>
+      .cls-1, .cls-2, .cls-3 {
+        fill: none;
+      }
+
+      .cls-4 {
+        fill: #fa0;
+      }
+
+      .cls-2 {
+        stroke: #f1ec63;
+        stroke-width: 14px;
+      }
+
+      .cls-2, .cls-3 {
+        stroke-miterlimit: 10;
+      }
+
+      .cls-5 {
+        fill: #f1ec63;
+      }
+
+      .cls-6 {
+        clip-path: url(#clippath-1);
+      }
+
+      .cls-7 {
+        fill: #00a;
+      }
+
+      .cls-8 {
+        fill: #0aa;
+      }
+
+      .cls-9 {
+        fill: #55f;
+      }
+
+      .cls-3 {
+        stroke: #5ff;
+        stroke-width: 4px;
+      }
+
+      .cls-10 {
+        fill: #0a0;
+      }
+
+      .cls-11 {
+        clip-path: url(#clippath);
+      }
+    </style>
+    <clipPath id="clippath">
+      <polygon class="cls-1" points="98.2 28.37 196.31 85.02 196.39 85.02 196.39 56.69 98.2 0 0 56.69 0 85.02 .08 85.02 98.2 28.37"/>
+    </clipPath>
+    <clipPath id="clippath-1">
+      <polygon class="cls-1" points="98.2 198.4 .08 141.76 0 141.76 0 170.08 98.19 226.77 196.39 170.08 196.39 141.76 196.31 141.76 98.2 198.4"/>
+    </clipPath>
+  </defs>
+  <g class="cls-11">
+    <rect class="cls-10" x="0" y="0" width="196.39" height="85.02"/>
+  </g>
+  <g class="cls-6">
+    <rect class="cls-4" x="0" y="141.76" width="196.39" height="85.02" transform="translate(196.39 368.53) rotate(-180)"/>
+  </g>
+  <g>
+    <polygon class="cls-5" points="149.86 92.7 149.86 134.07 185.68 113.39 149.86 92.7"/>
+    <line class="cls-2" x1="122.74" y1="113.39" x2="149.86" y2="113.39"/>
+    <line class="cls-2" x1="10.71" y1="113.39" x2="73.65" y2="113.39"/>
+  </g>
+  <polygon class="cls-8" points="98.2 85.04 122.74 99.21 98.2 113.39 73.65 99.21 98.2 85.04"/>
+  <polygon class="cls-7" points="122.74 127.56 98.2 141.73 98.2 113.39 122.74 99.21 122.74 127.56"/>
+  <polygon class="cls-9" points="73.65 127.56 73.65 99.21 98.2 113.39 98.2 141.73 73.65 127.56"/>
+  <polygon class="cls-3" points="122.74 127.56 122.74 99.21 98.2 85.04 73.65 99.21 73.65 127.56 98.2 141.73 122.74 127.56"/>
+</svg>
