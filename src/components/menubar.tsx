@@ -1,4 +1,4 @@
-import { get_chat, to_minecraft_style_string, type Chat } from "@/lib/chat";
+import { type Chat } from "@/lib/chat";
 import {
   Menubar,
   MenubarContent,
@@ -10,13 +10,13 @@ import {
   MenubarSubTrigger,
   MenubarTrigger,
 } from "./ui/menubar";
-import ChatLoadWorker from "@/lib/chat-loader.worker?worker";
 import { get, set } from "@/lib/storage";
 import { CheckIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useEffect, useState, type ReactNode } from "react";
 import { toast } from "sonner";
-import type { ChatLoaderInput, ChatLoaderOutput, ChatLoadingProgress } from "@/lib/chat-loader.worker";
+import type { ChatLoadingProgress } from "@/lib/chat-loader.worker";
+import { downloadChatAsTxt, loadFromFileChooser } from "@/lib/chat-io";
 
 type Font = "default" | "unifont" | "mcfont";
 type Theme = "light" | "dark";
@@ -57,17 +57,29 @@ export default function MCLog2ChatMenubar({
       <MenubarMenu>
         <MenubarTrigger>File</MenubarTrigger>
         <MenubarContent>
-          <MenubarItem disabled={isChatLoading} onSelect={() => load_from_file_chooser(setChatList, startChatLoading, setChatLoadingProgress)}>
+          <MenubarItem disabled={isChatLoading} onSelect={() => {
+            startChatLoading(async () => {
+              const {chatList, failedFiles} = await loadFromFileChooser((progress) => setChatLoadingProgress(progress));
+              if(failedFiles.length > 0) {
+                toast("These files did not contain any chats or could not be read!", {
+                  description: failedFiles.reduce<ReactNode[]>((acc, value) => [...acc, <br/>, value], []).slice(1),
+                  duration: 10000,
+                });
+              }
+              setChatList(chatList);
+              setChatLoadingProgress(null);
+            });
+          }}>
             Load from file
           </MenubarItem>
-          <MenubarItem disabled={isChatLoading} onSelect={() => load_from_clipboard(setChatList, startChatLoading)}>
-            Load from clipboard
+          <MenubarItem disabled={isChatLoading || true} onSelect={() => {}}>
+            Load from text (WIP)
           </MenubarItem>
           <MenubarSeparator />
           <MenubarItem
             disabled={isChatLoading || chatList.length === 0}
             onSelect={() => {
-              download_chat_as_txt(chatList);
+              downloadChatAsTxt(chatList);
             }}
           >
             Save as a text file
@@ -122,72 +134,4 @@ export default function MCLog2ChatMenubar({
       </MenubarMenu>
     </Menubar>
   );
-}
-
-function load_from_file_chooser(setChatList: (chatList: Chat[]) => void, startChatLoading: (action: () => void) => void, setChatLoadingProgress: (progress: ChatLoadingProgress | null) => void) {
-  new Promise<FileList | null>((resolve) => {
-    const file_chooser = document.createElement("input");
-    file_chooser.type = "file";
-    file_chooser.accept = "text/plain,.log,.gz";
-    file_chooser.multiple = true;
-    file_chooser.onchange = () => {
-      resolve(file_chooser.files);
-    };
-    file_chooser.click();
-  }).then((fileList) => {
-    if (!fileList) return;
-    startChatLoading(async () => {
-      await new Promise<void>((resolve) => {
-        const loader = new ChatLoadWorker();
-        loader.postMessage({
-          type: "file",
-          files: [...fileList],
-        } satisfies ChatLoaderInput);
-        loader.addEventListener("message", (e) => {
-          const output = e.data as ChatLoaderOutput;
-          switch(output.type) {
-            case "progress":
-              setChatLoadingProgress(output.progress);
-              break;
-            case "failed_files":
-              toast("These files did not contain any chats or could not be read!", {
-                description: output.failedFiles.reduce<ReactNode[]>((acc, value) => [...acc, <br/>, value], []).slice(1),
-                duration: 10000,
-              });
-              break;
-            case "result":
-              setChatList(output.chatList);
-              setChatLoadingProgress(null);
-              resolve();
-              break;
-          }
-        });
-      })
-    });
-  });
-}
-
-function load_from_clipboard(setChatList: (chatList: Chat[]) => void, startChatLoading: (action: () => void) => void) {
-  startChatLoading(() => {
-    navigator.clipboard.readText().then((text) => {
-      const chatList = text
-        .split("\n")
-        .map((line) => get_chat(line))
-        .filter((chat) => chat !== null);
-      setChatList(chatList);
-    })
-  });
-}
-
-function download_chat_as_txt(chatList: Chat[]) {
-  const str_chat_list = chatList.map(to_minecraft_style_string).join("\n");
-  const chat_file = new Blob([str_chat_list], {
-    type: "text/plain",
-  });
-  const url = URL.createObjectURL(chat_file);
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = "chatlist.txt";
-  link.click();
-  URL.revokeObjectURL(url);
 }

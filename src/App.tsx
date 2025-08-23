@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, useTransition, type ReactNode } from "react";
+import { useEffect, useMemo, useReducer, useState, useTransition, type ReactNode } from "react";
 import "./App.css";
 import Logo from "/logo.svg";
 import ChatFilter from "./components/chat-filter";
@@ -10,13 +10,13 @@ import {
 } from "./lib/chat-filter";
 import { get_display_chat_player, type Chat } from "./lib/chat";
 import MCLog2ChatMenubar from "./components/menubar";
-import ChatLoadWorker from "./lib/chat-loader.worker?worker";
 import { Dropzone, DropzoneContent, DropzoneEmptyState } from "./components/ui/shadcn-io/dropzone";
 import { Toaster } from "./components/ui/sonner";
 import { toast } from "sonner";
 import { cn } from "./lib/utils";
-import type { ChatLoaderInput, ChatLoaderOutput, ChatLoadingProgress } from "./lib/chat-loader.worker";
+import type { ChatLoadingProgress } from "./lib/chat-loader.worker";
 import LoadingCard from "./components/loading-dialog";
+import { loadFromFiles } from "./lib/chat-io";
 
 function App() {
   const [chatFilter, setChatFilter] = useState<ChatFilterData>({
@@ -25,7 +25,7 @@ function App() {
     forced_mismatch: false,
   });
 
-  const [chatList, setChatList] = useState<Chat[]>([]);
+  const [chatList, setChatList] = useReducer<Chat[], [Chat[]]>((prev, chatList: Chat[]) => chatList.length === 0 ? prev : chatList, []);
   const players = useMemo(
     () =>
       [
@@ -39,8 +39,6 @@ function App() {
 
   const [isChatLoading, startChatLoading] = useTransition();
   const [chatLoadingProgress, setChatLoadingProgress] = useState<ChatLoadingProgress | null>(null);
-  // const [isChatLoading, setIsChatLoading] = useState(true);
-  // function startChatLoading(f: () => void) {}
 
   const [filteredChatList, setFilteredChatList] = useState<Chat[]>([]);
   useEffect(() => {
@@ -86,36 +84,17 @@ function App() {
               ".log": [],
               ".gz": []
             }} onError={console.error}
-              // src={files}
               onDrop={(files) => {
-                // setFiles(files);
                 startChatLoading(async () => {
-                  await new Promise<void>((resolve) => {
-                    const loader = new ChatLoadWorker();
-                    loader.postMessage({
-                      type: "file",
-                      files: files
-                    } satisfies ChatLoaderInput);
-                    loader.addEventListener("message", (e) => {
-                      const output = e.data as ChatLoaderOutput;
-                      switch(output.type) {
-                        case "progress":
-                          setChatLoadingProgress(output.progress);
-                          break;
-                        case "failed_files":
-                          toast("These files did not contain any chats or could not be read!", {
-                            description: output.failedFiles.reduce<ReactNode[]>((acc, value) => [...acc, <br/>, value], []).slice(1),
-                            duration: 10000,
-                          });
-                          break;
-                        case "result":
-                          setChatList(output.chatList);
-                          setChatLoadingProgress(null);
-                          resolve()
-                          break;
-                      }
-                    })
-                  });
+                  const {chatList, failedFiles} = await loadFromFiles([...files], (progress) => setChatLoadingProgress(progress));
+                  if(failedFiles.length > 0) {
+                    toast("These files did not contain any chats or could not be read!", {
+                      description: failedFiles.reduce<ReactNode[]>((acc, value) => [...acc, <br/>, value], []).slice(1),
+                      duration: 10000,
+                    });
+                  }
+                  setChatList(chatList);
+                  setChatLoadingProgress(null);
                 });
               }
             }>
