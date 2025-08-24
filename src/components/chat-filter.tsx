@@ -5,6 +5,7 @@ import { Checkbox } from "./ui/checkbox";
 import { Label } from "./ui/label";
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
+import ChatTypeSelector from "./chat-type-selector";
 
 export default function ChatFilter({
   filter,
@@ -65,7 +66,6 @@ export default function ChatFilter({
     >
       <PlayerSelector
         players={players}
-        playerFilteringMode={filter.players_filteling_mode}
         selectedPlayers={filter.players ?? []}
         setSelectedPlayers={(selectedPlayers) => {
           setFilter({
@@ -73,9 +73,23 @@ export default function ChatFilter({
             players: selectedPlayers,
           });
         }}
+        playerFilteringMode={filter.players_filteling_mode}
         togglePlayerFilteringMode={() => setFilter({
           ...filter,
           players_filteling_mode: filter.players_filteling_mode === "whitelist" ? "blacklist" : "whitelist"
+        })}
+        disabled={disabled}
+      />
+      <ChatTypeSelector
+        selectedChatTypes={filter.chat_type}
+        chatTypeFilteringMode={filter.chat_type_filteling_mode}
+        setSelectedChatTypes={(selectedChatTypes) => setFilter({
+            ...filter,
+            chat_type: selectedChatTypes
+        })}
+        togglePlayerFilteringMode={() => setFilter({
+          ...filter,
+          chat_type_filteling_mode: filter.chat_type_filteling_mode === "whitelist" ? "blacklist" : "whitelist"
         })}
         disabled={disabled}
       />

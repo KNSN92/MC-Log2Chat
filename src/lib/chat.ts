@@ -54,6 +54,8 @@ export type Chat = {
   }
 );
 
+export type ChatType = Chat["type"];
+
 export interface ChatTime {
   year?: number,
   month?: number,
