@@ -38,7 +38,7 @@ type ChatSection = {
 addEventListener("message", async e => {
 	const data = e.data as ChatLoaderInput;
 	let chatSections: ChatSection[] | null = data.type === "text" ? [{
-		name: null,
+		name: "Text",
 		date: null,
 		lines: data.text.split("\n")
 	}] : null;
@@ -72,32 +72,40 @@ addEventListener("message", async e => {
 		return acc;
 	}, [0]);
 	lineLenAcc.pop();
-	const chatList: Chat[] = chatSections.map((chatSection, section_idx) => 
-		chatSection.lines.map((line, i) => {
-			const chat = get_chat(line);
-			postMessage({
-				type: "progress",
-				progress: {
-					task: "get_chat",
-					file: chatSection.name,
-					progress: (lineLenAcc[section_idx] + i) / totalLines,
+	const failedFiles: string[] = [];
+	const chatList: Chat[] = chatSections.map((chatSection, section_idx) => {
+			const chatList = chatSection.lines.map((line, i) => {
+				const chat = get_chat(line);
+				postMessage({
+					type: "progress",
+					progress: {
+						task: "get_chat",
+						file: chatSection.name,
+						progress: (lineLenAcc[section_idx] + i) / totalLines,
+					}
+				} satisfies ChatLoaderOutput);
+				if(!chat) return null;
+				if(chatSection.date) {
+					chat.time.year = chatSection.date.year;
+					chat.time.month = chatSection.date.month;
+					chat.time.day = chatSection.date.day;
 				}
-			} satisfies ChatLoaderOutput);
-			if(!chat) return null;
-			if(chatSection.date) {
-				chat.time.year = chatSection.date.year;
-				chat.time.month = chatSection.date.month;
-				chat.time.day = chatSection.date.day;
-			}
-			return chat;
-		}).filter((chat) => chat !== null)
+				return chat;
+			}).filter((chat) => chat !== null);
+			if(chatList.length === 0) failedFiles.push(chatSection.name ?? "??")
+			return chatList;
+		}
 	).reduce((acc, chatList) => {
 		return [...acc, ...chatList];
 	}, []);
 	postMessage({
+		type: "failed_files",
+		failedFiles
+	} satisfies ChatLoaderOutput)
+	postMessage({
 		type: "result",
 		chatList
-	})
+	} satisfies ChatLoaderOutput)
 });
 
 export async function loadChatFiles(files: File[], onFileLoad?: (file: string, progress: number) => void): Promise<{
