@@ -90,7 +90,7 @@ export function get_chat(line: string): Chat | null {
   const player = matched.groups.Player || null;
 
   const time: ChatTime = { hour: hours, minute: minutes, second: seconds };
-  const message = matched.groups.Message;
+  const message = matched.groups.Message.trim();
   if(!is_system && player != null) {
     return {
       type: "player",

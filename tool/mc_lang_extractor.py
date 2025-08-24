@@ -76,7 +76,7 @@ for i, lang_file in enumerate(lang_files):
                         else:
                             splited = r"([a-zA-Z0-9_]+?)"
                     spliteds[i] = splited
-                extracted[category].add("".join(spliteds))
+                extracted[category].add("^"+"".join(spliteds)+"$")
                 break
 
 extracted = {k : sorted(list(v)) for k, v in extracted.items()}
