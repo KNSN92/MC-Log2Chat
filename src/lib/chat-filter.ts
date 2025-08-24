@@ -2,6 +2,7 @@ import { get_display_chat_player, type Chat } from "./chat";
 
 export interface ChatFilter {
   players: string[] | null;
+  players_filteling_mode: "whitelist" | "blacklist",
   message: string | RegExp | null;
   forced_mismatch: boolean
 }
@@ -10,10 +11,7 @@ export function filterChatList(chatList: Chat[], filter: ChatFilter): Chat[] {
   if(filter.forced_mismatch) return [];
   if(filter.players == null && filter.message == null) return chatList;
   if(filter.players && filter.players.length > 0) {
-    chatList = chatList.filter((chat) => {
-      const player = get_display_chat_player(chat);
-      return player && filter.players!.includes(player);
-    });
+    chatList = chatList.filter((chat) => filterPlayer(chat, filter.players!, filter.players_filteling_mode));
   }
   if(filter.message != null) {
     const message_filter = filter.message;
@@ -24,6 +22,16 @@ export function filterChatList(chatList: Chat[], filter: ChatFilter): Chat[] {
     }
   }
   return chatList;
+}
+
+function filterPlayer(chat: Chat, players: string[], mode: "whitelist" | "blacklist"): boolean {
+  const player = get_display_chat_player(chat);
+  if(!player) return false;
+  if(mode === "whitelist") {
+    return players.includes(player);
+  }else {
+    return !players.includes(player);
+  }
 }
 
 function filterChatContains(chat: Chat, filter: string): boolean {

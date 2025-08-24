@@ -9,18 +9,23 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
+  CommandSeparator,
 } from "./ui/command";
 import { cn } from "@/lib/utils";
 
 export default function PlayerSelector({
   players,
+  playerFilteringMode,
   selectedPlayers,
   setSelectedPlayers,
+  togglePlayerFilteringMode,
   disabled,
 }: {
   players: string[];
   selectedPlayers: string[];
+  playerFilteringMode: "whitelist" | "blacklist";
   setSelectedPlayers: (value: string[]) => void;
+  togglePlayerFilteringMode: () => void;
   disabled: boolean;
 }) {
   const [open, setOpen] = useState(false);
@@ -41,7 +46,7 @@ export default function PlayerSelector({
           className="w-[200px] justify-between"
         >
           {selectedPlayers.length > 0
-            ? selectedPlayers[0] + (selectedPlayers.length > 1 ? ", ..." : "")
+            ? (playerFilteringMode === "whitelist" ? "" : "!") + selectedPlayers[0] + (selectedPlayers.length > 1 ? ", ..." : "")
             : "Select player..."}
           <ChevronsUpDownIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
@@ -49,9 +54,16 @@ export default function PlayerSelector({
       <PopoverContent className="w-[200px] p-0">
         <Command>
           <CommandInput placeholder="Search player..." />
+          <CommandGroup heading="Settings">
+            <CommandItem className="pl-6" onSelect={() => togglePlayerFilteringMode()}>
+              <div className="mr-2 size4" />
+              {playerFilteringMode === "whitelist" ? "Whitelist" : "Blacklist"}
+            </CommandItem>
+          </CommandGroup>
+          <CommandSeparator />
           <CommandList>
             <CommandEmpty>No player found.</CommandEmpty>
-            <CommandGroup>
+            <CommandGroup heading="Players">
               {sorted_players.map((player, i) => (
                 <CommandItem
                   key={i}
@@ -71,7 +83,7 @@ export default function PlayerSelector({
                 >
                   <CheckIcon
                     className={cn(
-                      "mr-2 h-4 w-4",
+                      "mr-2 size4",
                       selectedPlayers.includes(player)
                         ? "opacity-100"
                         : "opacity-0"

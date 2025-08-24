@@ -21,6 +21,7 @@ import { loadFromFiles } from "./lib/chat-io";
 function App() {
   const [chatFilter, setChatFilter] = useState<ChatFilterData>({
     players: null,
+    players_filteling_mode: "whitelist",
     message: null,
     forced_mismatch: false,
   });

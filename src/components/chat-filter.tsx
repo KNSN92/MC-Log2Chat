@@ -65,6 +65,7 @@ export default function ChatFilter({
     >
       <PlayerSelector
         players={players}
+        playerFilteringMode={filter.players_filteling_mode}
         selectedPlayers={filter.players ?? []}
         setSelectedPlayers={(selectedPlayers) => {
           setFilter({
@@ -72,6 +73,10 @@ export default function ChatFilter({
             players: selectedPlayers,
           });
         }}
+        togglePlayerFilteringMode={() => setFilter({
+          ...filter,
+          players_filteling_mode: filter.players_filteling_mode === "whitelist" ? "blacklist" : "whitelist"
+        })}
         disabled={disabled}
       />
       <Input
