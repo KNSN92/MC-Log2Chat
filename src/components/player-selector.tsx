@@ -43,7 +43,7 @@ export default function PlayerSelector({
           role="combobox"
           aria-expanded={open}
           disabled={disabled}
-          className="w-[200px] justify-between"
+          className="w-[20vw] min-w-fit max-w-[200px] justify-between"
         >
           {selectedPlayers.length > 0
             ? (playerFilteringMode === "whitelist" ? "" : "!") + selectedPlayers[0] + (selectedPlayers.length > 1 ? ", ..." : "")

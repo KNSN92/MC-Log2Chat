@@ -59,7 +59,7 @@ export default function ChatFilter({
   return (
     <div
       className={cn(
-        "flex items-center gap-2",
+        "flex items-center gap-2 flex-wrap md:flex-nowrap",
         disabled && "cursor-not-allowed"
       )}
     >
@@ -82,6 +82,7 @@ export default function ChatFilter({
       <Input
         type="text"
         placeholder="Search text in message..."
+        className=""
         disabled={disabled}
         onChange={(e) =>
           setSearchText(e.target.value === "" ? null : e.target.value)
