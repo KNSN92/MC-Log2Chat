@@ -29,9 +29,9 @@ export default function ChatTypeSelector({
 }) {
   const [open, setOpen] = useState(false);
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const selectedChatTypeList = selectedChatTypes
     ? Object.entries(selectedChatTypes)
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         .filter(([_, selected]) => selected)
         .map(([chatType]) => chatType)
     : [];
