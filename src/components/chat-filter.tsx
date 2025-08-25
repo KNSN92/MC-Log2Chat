@@ -18,7 +18,6 @@ export default function ChatFilter({
   disabled: boolean;
   players: string[];
 }) {
-
   const [searchText, setSearchText] = useState<string | null>(null);
   const [useRegex, setUseRegex] = useState(false);
 
@@ -47,6 +46,7 @@ export default function ChatFilter({
       message,
       forced_mismatch: false,
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchText, useRegex]);
 
   useEffect(() => {
@@ -55,6 +55,7 @@ export default function ChatFilter({
       players:
         filter.players?.filter((player) => players.includes(player)) || null,
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [players]);
 
   return (
@@ -74,23 +75,35 @@ export default function ChatFilter({
           });
         }}
         playerFilteringMode={filter.players_filteling_mode}
-        togglePlayerFilteringMode={() => setFilter({
-          ...filter,
-          players_filteling_mode: filter.players_filteling_mode === "whitelist" ? "blacklist" : "whitelist"
-        })}
+        togglePlayerFilteringMode={() =>
+          setFilter({
+            ...filter,
+            players_filteling_mode:
+              filter.players_filteling_mode === "whitelist"
+                ? "blacklist"
+                : "whitelist",
+          })
+        }
         disabled={disabled}
       />
       <ChatTypeSelector
         selectedChatTypes={filter.chat_type}
         chatTypeFilteringMode={filter.chat_type_filteling_mode}
-        setSelectedChatTypes={(selectedChatTypes) => setFilter({
+        setSelectedChatTypes={(selectedChatTypes) =>
+          setFilter({
             ...filter,
-            chat_type: selectedChatTypes
-        })}
-        togglePlayerFilteringMode={() => setFilter({
-          ...filter,
-          chat_type_filteling_mode: filter.chat_type_filteling_mode === "whitelist" ? "blacklist" : "whitelist"
-        })}
+            chat_type: selectedChatTypes,
+          })
+        }
+        togglePlayerFilteringMode={() =>
+          setFilter({
+            ...filter,
+            chat_type_filteling_mode:
+              filter.chat_type_filteling_mode === "whitelist"
+                ? "blacklist"
+                : "whitelist",
+          })
+        }
         disabled={disabled}
       />
       <Input
